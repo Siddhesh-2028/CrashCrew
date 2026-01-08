@@ -1,0 +1,7 @@
+Step 1: Access the Repository
+The project is hosted on GitHub: https://github.com/Siddhesh-2028/CrashCrew
+Ask them to clone it using: git clone https://github.com/Siddhesh-2028/CrashCrew.git
+Step 2: Prerequisites
+Ensure Docker Desktop is installed and running on their system (Windows, macOS, or Linux). Download from docker.com.
+Step 3: Deployment Instructions (Using Docker Compose)
+From the repository root directory, run these commands in a terminal (PowerShell on Windows):
