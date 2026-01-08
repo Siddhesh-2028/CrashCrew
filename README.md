@@ -27,3 +27,4 @@ CarbonWealth is a web-based platform that empowers users to turn environmental i
 ### Set Target: Enter your desired monthly carbon credit earnings on the Main Page.
 ### Act: Choose from the list of recommended actions.
 ### Track: Visit the Progress page to see how close you are to your goal.
+## Refer Instructions to deploy for localhost URL
