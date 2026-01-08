@@ -1,3 +1,4 @@
+local host URL: http://localhost:5173
 Step 1: Access the Repository
 The project is hosted on GitHub: https://github.com/Siddhesh-2028/CrashCrew
 Ask them to clone it using: git clone https://github.com/Siddhesh-2028/CrashCrew.git
