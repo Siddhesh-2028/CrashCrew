@@ -1,0 +1,6 @@
+__pycache__
+.venv
+instance/database.db
+.pytest_cache
+*.pyc
+.git

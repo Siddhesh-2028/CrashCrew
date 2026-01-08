@@ -1,22 +1,27 @@
 from flask import Flask
 from config import Config
-from models import db
+from extensions import db, bcrypt, jwt, cors
 from routes.auth import auth_bp
 from routes.profile import profile_bp
 from routes.dashboard import dashboard_bp
-from flask_jwt_extended import JWTManager
 import os
 
-def create_app():
+def create_app(test_config: dict = None):
     app = Flask(__name__)
+    # Load default config, then allow tests to override via test_config
     app.config.from_object(Config)
+    if test_config:
+        app.config.update(test_config)
 
-    JWTManager(app)
+    # Initialize extensions
+    db.init_app(app)
+    bcrypt.init_app(app)
+    jwt.init_app(app)
+    cors.init_app(app)
 
     # Ensure instance folder exists
     os.makedirs(os.path.join(app.root_path, "instance"), exist_ok=True)
 
-    db.init_app(app)
 
     # Register blueprints
     app.register_blueprint(auth_bp, url_prefix="/api/auth")

@@ -1,10 +1,9 @@
 from flask import Blueprint, request
 from models import db, User
-from flask_bcrypt import Bcrypt
 from flask_jwt_extended import create_access_token
+from extensions import bcrypt
 
 auth_bp = Blueprint("auth", __name__)
-bcrypt = Bcrypt()
 
 # ------------------------
 # REGISTER
@@ -61,7 +60,8 @@ def login():
     if not user or not bcrypt.check_password_hash(user.password_hash, password):
         return {"error": "Invalid credentials"}, 401
 
-    access_token = create_access_token(identity=user.id)
+    # Ensure the JWT 'sub' (subject) is a string to avoid PyJWT validation errors
+    access_token = create_access_token(identity=str(user.id))
 
     return {
         "message": "Login successful",

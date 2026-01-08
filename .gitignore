@@ -1,0 +1,29 @@
+# Python
+backend/venv/
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+instance/database.db
+*.sqlite
+
+# Node
+carbonwealth-frontend/node_modules/
+carbonwealth-frontend/dist/
+
+# Build / deployment bundles
+*.tar
+crashcrew_deploy.zip
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+
+# env files
+*.env
+
+# Logs
+*.log

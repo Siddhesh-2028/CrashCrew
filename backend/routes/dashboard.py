@@ -1,6 +1,8 @@
 from flask import Blueprint, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from models import db, Goal, UserProfile
+from models import db, Goal, UserProfile, ActionMaster, UserActionPreference
+
+DEFAULT_PER_ACTION_MAX = 500  # assumption: user won't take actions with monthly_savings > 500 by default
 
 dashboard_bp = Blueprint("dashboard", __name__)
 
@@ -44,11 +46,63 @@ def create_or_update_goal():
 
     db.session.commit()
 
+    # Build recommendations based on user's profile
+    profile = UserProfile.query.filter_by(user_id=user_id).first()
+    recs = []
+
+    # derive relevant categories from profile if present, otherwise use broad defaults
+    categories = set()
+    if profile:
+        if getattr(profile, 'owns_vehicle', None) and str(profile.owns_vehicle).lower() != "none":
+            categories.add("transport")
+        if getattr(profile, 'primary_transport', None) and str(profile.primary_transport).lower() in ["car", "two-wheeler"]:
+            categories.add("transport")
+        if getattr(profile, 'uses_ac', None) or getattr(profile, 'pays_electricity', None):
+            categories.add("energy")
+        if getattr(profile, 'diet_type', None):
+            categories.add("food")
+    else:
+        # no profile: use general categories to recommend a useful mix
+        categories.update(["transport", "energy", "food", "lifestyle", "water", "waste"])
+
+    # always include lifestyle and water/waste as low-effort options
+    categories.update(["lifestyle", "water", "waste"])
+
+    per_action_max = min(DEFAULT_PER_ACTION_MAX, normalized_monthly)
+
+    # allow zero-cost actions and actions under per_action_max
+    query = ActionMaster.query.filter(ActionMaster.category.in_(list(categories))).filter(
+        (ActionMaster.monthly_savings <= per_action_max) | (ActionMaster.monthly_savings == 0)
+    )
+
+    actions = query.order_by(ActionMaster.co2_saved_per_month.desc()).all()
+
+    # pick top actions until we reach ~80% of monthly target or exhaust list
+    target_threshold = normalized_monthly * 0.8
+    cum = 0
+    for a in actions:
+        recs.append({
+            "id": a.id,
+            "action_name": a.action_name,
+            "category": a.category,
+            "co2_saved_per_month": a.co2_saved_per_month,
+            "monthly_savings": a.monthly_savings,
+        })
+        # treat None or negative monthly_savings as 0 for accumulation
+        try:
+            ms = a.monthly_savings or 0
+        except Exception:
+            ms = 0
+        cum += ms
+        if cum >= target_threshold:
+            break
+
     return {
         "message": "Goal saved successfully",
         "plan_type": plan_type,
         "target_amount": target_amount,
-        "monthly_target": normalized_monthly
+        "monthly_target": normalized_monthly,
+        "recommendations": recs
     }, 200
 
 
@@ -89,6 +143,30 @@ def dashboard_overview():
             "monthly_target": goal.normalized_monthly_amount
         }
     }, 200
+
+
+
+@dashboard_bp.route("/actions", methods=["POST"]) 
+@jwt_required()
+def save_selected_actions():
+    """Save the user's selected action IDs as preferences."""
+    user_id = get_jwt_identity()
+    data = request.json or {}
+    action_ids = data.get("action_ids", [])
+
+    if not isinstance(action_ids, list):
+        return {"error": "action_ids must be a list"}, 400
+
+    # Remove previous preferences for user and add new ones (simple approach)
+    UserActionPreference.query.filter_by(user_id=user_id).delete()
+
+    for aid in action_ids:
+        pref = UserActionPreference(user_id=user_id, action_id=aid, selected=True)
+        db.session.add(pref)
+
+    db.session.commit()
+
+    return {"message": "Selected actions saved"}, 200
 
 
 # ==================================================

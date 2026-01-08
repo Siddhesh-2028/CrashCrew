@@ -1,0 +1,20 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    volumes:
+      - ./backend/instance:/app/instance
+    ports:
+      - '5000:5000'
+    environment:
+      - FLASK_ENV=production
+
+  frontend:
+    build:
+      context: .
+      dockerfile: carbonwealth-frontend/Dockerfile
+    ports:
+      - '5173:80'
+    depends_on:
+      - backend
