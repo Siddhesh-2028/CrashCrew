@@ -5,3 +5,22 @@ Step 2: Prerequisites
 Ensure Docker Desktop is installed and running on their system (Windows, macOS, or Linux). Download from docker.com.
 Step 3: Deployment Instructions (Using Docker Compose)
 From the repository root directory, run these commands in a terminal (PowerShell on Windows):
+# Navigate to the project folder
+cd 'path\to\CrashCrew'  # Replace with the actual path after cloning
+
+# Build and start the services in the background
+docker-compose up --build -d
+
+# (Optional) View logs to check for issues
+docker-compose logs -f
+
+# To stop and remove containers when done
+docker-compose down
+Backend will be available at: http://localhost:5000
+Frontend will be available at: http://localhost:5173
+Additional Notes
+This is a full-stack app with a Vue.js frontend, Flask backend, and SQLite database, all containerized for easy deployment.
+If they encounter issues (e.g., port conflicts), they can modify docker-compose.yml to change ports.
+For production deployment (e.g., on a server), they may need to adjust configurations, add environment variables for secrets, or use a reverse proxy like Nginx. The Docker setup is a good starting point.
+If they prefer running locally without Docker, they can install Node.js for the frontend (npm install && npm run dev) and Python for the backend (using the included .venv).
+If the organizer needs more details or runs into problems, they can refer to the README_DOCKER.md and README.md files in the repo for additional context.
